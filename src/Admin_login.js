@@ -10,23 +10,23 @@ function Admin(props){
     function handleAdd(event){
         event.preventDefault();
         setAddc(false);
-        const insertAt = 1; // Could be any index
+        const insertAt = 1; 
         if(centername ==='' || vacslot===0) window.alert("Enter Correct Details")
         if(centername !=='' && vacslot>0){
             const nextCenter = [
-        // Items before the insertion point:
+        
         ...props.center.slice(0, insertAt),
-        // New item:
+        
         { Center: centername , Available_Slots: vacslot, Slots:30},
-        // Items after the insertion point:
+       
         ...props.center.slice(insertAt)
         ];
         const nextCenter2 = [
-            // Items before the insertion point:
+            
             ...props.today_2.slice(0, insertAt),
-            // New item:
+           
             { Center: centername ,  Slots:10},
-            // Items after the insertion point:
+    
             ...props.today_2.slice(insertAt)
             ];
         props.oncenter(nextCenter);
@@ -43,7 +43,7 @@ function Admin(props){
         <>
         <button onClick= {(e)=>setAddc(!addc)} className="Addcenter">Add Center</button>
         {
-            addc?
+            addc?  //// Show Add Center
             <form>
                 <input className="input2" type="text" value={centername} placeholder="Enter Center Name" required="" 
 					onChange={(e)=>setCentername(e.target.value)}/>

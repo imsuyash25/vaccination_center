@@ -28,8 +28,7 @@ function App() {
     tommarow:false,
     next:false,
   });
-  let kalkidate =new Date();
-  let parsokidate = new Date();
+  
   const [today, setToday] = useState([
     {
       Center:"Bal Bharti School",
@@ -228,7 +227,8 @@ function handleSubmit(event){
   return (
     <div className="App">
       {login?<Login onusername = {setUsername} onAdmin ={setadminlogin} onsetlogin={setLogin}  onsetWel={setWel} onsetlogin2={setlogin}/>:null}
-      {Login_succ? <Navbar onsetShow = {setShowcart} Username = {user_name} onadminlogin={adminlogin} onAdmin ={setadminlogin} onsetlogin={setLogin}  onsetWel={setWel} onsetlogin2={setlogin} />:null}
+      {Login_succ? <Navbar onsetShow = {setShowcart} Username = {user_name} onadminlogin={adminlogin}
+       onAdmin ={setadminlogin} onsetlogin={setLogin}  onsetWel={setWel} onsetlogin2={setlogin} />:null}
       {adminlogin? <Admin  oncenter = {setCenter} today_2={today} ontoday = {setToday} onparso={setParso} ontom = {setTom} center={Center} /> :null}
       {welcome? <div className="Cart-Vac">
           <div className="cart-welcome">Welcome </div>
@@ -292,7 +292,7 @@ function handleSubmit(event){
       </ul>
       :null
       }
-      {!adminlogin&& show_cart && show_today.tommarow? <ul className="schedule">
+      {!adminlogin && show_cart && show_today.tommarow? <ul className="schedule">
         
         {tomarrow.map((item,index)=> {
           return(
