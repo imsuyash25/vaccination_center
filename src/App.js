@@ -8,8 +8,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import Schedule from './Schedule.js';
 import Login from './Login.js';
 import Admin from './Admin_login.js';
-
-                                                           
+import {firestore} from './firebase';
+import { addDoc, collection} from '@firebase/firestore';
 function App() {
   const [vacc,setVacc] = useState(false);
   const [welcome,setWel] = useState(false);
@@ -28,6 +28,14 @@ function App() {
     tommarow:false,
     next:false,
   });
+
+  const [slot_details, setUserSlot] = useState({
+    User_Name:"",
+    User_Gmail:"",
+    Booked_Center:"",
+    Booked_Date:"",
+  })
+
   
   const [today, setToday] = useState([
     {
@@ -100,7 +108,7 @@ function App() {
       },     
   ]);
 
-  const [parso,setParso] = useState([
+  const [aftertom,setaftertom] = useState([
   {
     Center:"Bal Bharti School",
     Slots: 10,
@@ -179,24 +187,23 @@ const [Center,setCenter] = useState([
 function GetForm(){
     setVacc(!vacc); 
   }
-function handlebook(data,unbook,setunbook){
+const handlebook=(data)=>{
     let number = today.indexOf(data);
-      if(unbook)
-      {
-        show_today.today && setToday(today.map((item,index)=>index===number ? {...item, Slots:item.Slots+1 }:{...item}));
-        show_today.tommarow && setTom(tomarrow.map((item,index)=>index===number ? {...item, Slots:item.Slots+1 }:{...item}));
-        show_today.next && setParso(parso.map((item,index)=>index===number ? {...item, Slots:item.Slots+1 }:{...item}));
-        setCenter(Center.map((item,index)=> index===number? {...item,Available_Slots:item.Available_Slots+1 }:{...item}))
-        window.alert("Slot Unbook");
-      }
-      else{
-        show_today.today && setToday(today.map((item,index)=>index===number && item.Slots!==0 ? {...item, Slots:item.Slots-1 }:{...item}))
-        show_today.tommarow && setTom(tomarrow.map((item,index)=>index===number ? {...item, Slots:item.Slots-1 }:{...item}));
-        show_today.next && setParso(parso.map((item,index)=>index===number ? {...item, Slots:item.Slots-1 }:{...item}));
-        setCenter(Center.map((item,index)=> index===number? {...item,Available_Slots:item.Available_Slots-1 }:{...item}))
-        window.alert("Slot Booked");
-      }
-      setunbook(!unbook);
+    show_today.today && setToday(today.map((item,index)=>index===number && item.Slots!==0 ? {...item, Slots:item.Slots-1 }:{...item}))
+    show_today.tommarow && setTom(tomarrow.map((item,index)=>index===number && item.Slots!==0 ? {...item, Slots:item.Slots-1 }:{...item}));
+    show_today.next && setaftertom(aftertom.map((item,index)=>index===number && item.Slots!==0? {...item, Slots:item.Slots-1 }:{...item}));
+    setCenter(Center.map((item,index)=> index===number? {...item,Available_Slots:item.Available_Slots-1 }:{...item}));
+    if(data.Slots>0) {
+      setUserSlot({...slot_details, User_Name:localStorage.getItem('Name'),
+      User_Gmail:localStorage.getItem('Gmail'), Booked_Center: data.Center, Booked_Date:startDate.toLocaleDateString()})
+      const ref = collection(firestore,"Booked Slots");
+      addDoc(ref,slot_details);
+      setUserSlot({User_Name:"",
+      User_Gmail:"",
+      Booked_Center:"",
+      Booked_Date:"",})
+    }
+    if(data.Slots === 0) alert("No Slots Available");
   }
 function handlecity(event){
     setStat(event.target.value);
@@ -207,13 +214,13 @@ function handleSubmit(event){
     setShowcart(true);
     let previous = new Date();
     previous.setDate(previous.getDate()+1);
-    let parso = new Date();
-    parso.setDate(parso.getDate()+2);
+    let day_after = new Date();
+    day_after.setDate(day_after.getDate()+2);
     if(states==='') window.alert("Please Select State");
     else if(city==='') window.alert("Please Select City");
     else if(startDate.toLocaleDateString()=== todate.toLocaleDateString()) setShow_today({...show_today,today:true,tommarow:false,next:false});
     else if (previous.toLocaleDateString()=== startDate.toLocaleDateString()) setShow_today({...show_today,tommarow:true,today:false,next:false});
-    else if (parso.toLocaleDateString() === startDate.toLocaleDateString())
+    else if (day_after.toLocaleDateString() === startDate.toLocaleDateString())
       setShow_today({...show_today,tommarow:false,today:false,next:true});
     else{
       setShow_today({...show_today,today:false,tommarow:false,next:false});
@@ -229,7 +236,7 @@ function handleSubmit(event){
       {login?<Login onusername = {setUsername} onAdmin ={setadminlogin} onsetlogin={setLogin}  onsetWel={setWel} onsetlogin2={setlogin}/>:null}
       {Login_succ? <Navbar onsetShow = {setShowcart} Username = {user_name} onadminlogin={adminlogin}
        onAdmin ={setadminlogin} onsetlogin={setLogin}  onsetWel={setWel} onsetlogin2={setlogin} />:null}
-      {adminlogin? <Admin  oncenter = {setCenter} today_2={today} ontoday = {setToday} onparso={setParso} ontom = {setTom} center={Center} /> :null}
+      {adminlogin? <Admin  oncenter = {setCenter} today_2={today} ontoday = {setToday} onaftertom={setaftertom} ontom = {setTom} center={Center} /> :null}
       {welcome? <div className="Cart-Vac">
           <div className="cart-welcome">Welcome </div>
           <div className="Find-Vac">Find vaccination center</div>
@@ -299,6 +306,7 @@ function handleSubmit(event){
               <Schedule key = {index} 
                   data= {item}
                   onbook = {handlebook}
+                  date={startDate}
               />
           )
         })
@@ -307,12 +315,13 @@ function handleSubmit(event){
       :null
       }
       {!adminlogin && show_cart && show_today.next? <ul className="schedule">
-        {parso.map((item,index)=> {
+        {aftertom.map((item,index)=> {
           
           return(
               <Schedule key = {index} 
                   data= {item}
                   onbook = {handlebook}
+                  date = {startDate}
               />
           )
         })
